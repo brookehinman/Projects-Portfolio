@@ -1,0 +1,40 @@
+---
+title: "Analysis6"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analysis6}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+*Is the intensity of tropical cyclones increasing over time? Define specifically what this question means to you, and do an appropriate statistical analysis to try to answer the question using the hurdat data. This involves writing down a statistical model, identifying parameters of interest, estimating them, and doing inference on them.*
+
+The question of whether the intensity of tropical cyclones is increasing over time refers to the potential trend of tropical cyclones becoming stronger and more intense as time passes. This could have significant implications for coastal communities, as stronger storms could lead to more damage and loss of life.
+
+The statistical model that we will use is a linear model: max.wind = beta_0 + beta_1 * Year + error
+beta_0 is the intercept, beta_1 is the coefficient for the Year variable, and error is a random error term that captures the variability in the data that is not explained by the linear relationship with Year.
+
+The parameter of interest is the coefficient of the "Year" predictor variable in the linear regression model. This represents the expected change in the maximum wind speed of a tropical cyclone for a one-unit increase in the year of observation. If this parameter is positive and statistically significant, it would suggest that the intensity of tropical cyclones is increasing over time.
+
+```{r setup}
+library(hurricaneHelper)
+data(hurdat)
+
+hurdat$year <- as.numeric(substr(hurdat$date, 1, 4))
+
+model <- lm(max.wind ~ year, data = hurdat)
+summary(model)
+```
+
+From the summary of our model, we see that our estimate is -0.112815. This means that, 
+on average, the maximum wind speed is expected to decrease by approximately 0.112815 per year. 
+The p-value is <2e-16, which is less than a significance level of 0.05. This means 
+that the relationship is significant, and we can reject the null hypothesis that 
+there is no relationship. However, the model shows a decrease in wind speed, not an increase.

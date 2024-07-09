@@ -1,0 +1,62 @@
+---
+title: "Analysis5"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analysis5}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+*Is the number of landfalling hurricanes increasing over time? Define specifically what this question means to you, and do an appropriate statistical analysis to try to answer the question using the hurdat data. This involves writing down a statistical model, identifying parameters of interest, estimating them, and doing inference on them.*
+
+A landfalling hurricane is a tropical cyclone that makes direct contact with land, and this question wants us to investigate whether the number of hurricanes making contact with land increases on average over years. The time period that we will look at is the entire period that HURDAT covers (1851-2022).
+
+The statistical model that we will use is a linear model: Landfall_Count = beta_0 + beta_1 * Year + error
+beta_0 is the intercept, beta_1 is the coefficient for the Year variable, and error is a random error term that captures the variability in the data that is not explained by the linear relationship with Year.
+
+The parameter of interest is the coefficient of the "Year" predictor variable in the linear regression model. This represents the change in the number of landfalling hurricanes for a one-unit increase in the year of observation. Specifically, if the coefficient is positive and statistically significant, it suggests an increasing trend in the number of landfalling hurricanes over time.
+
+```{r setup}
+library(hurricaneHelper)
+data(hurdat)
+
+hurdat$year <- as.numeric(substr(hurdat$date, 1, 4))
+
+landfalls <- hurdat[hurdat$identifier == " L", ]
+
+landfalls_unique <- landfalls[!duplicated(landfalls$id), ]
+
+plot(table(landfalls_unique$year), type = "b", xlab = "Year", ylab = "Number of landfalling hurricanes", main = "Number of landfalling hurricanes over time")
+
+# Statistical test
+landfalls_per_year <- as.data.frame(table(landfalls_unique$year))
+names(landfalls_per_year) <- c("Year", "Landfall_Count")
+
+
+# Create a sequence of years
+all_years <- data.frame(Year = min(landfalls_unique$year):max(landfalls_unique$year))
+
+# Merge with landfalls_per_year using a left join
+landfalls_all_years <- merge(all_years, landfalls_per_year, by = "Year", all.x = TRUE)
+
+# Replace missing landfall counts with 0
+landfalls_all_years$Landfall_Count[is.na(landfalls_all_years$Landfall_Count)] <- 0
+
+# Fit the linear regression model
+model <- lm(Landfall_Count ~ Year, data = landfalls_all_years)
+summary(model)
+```
+
+From the summary of our model, we see that our estimate is 0.025578. This means that, on average, 
+the number of landfalling hurricanes is expected to increase by approximately 0.0256 per year,
+or about 2-3 additional landfalling hurricanes per century. The p-value is 1.03e-08, which is less than
+a significance level of 0.05. This means that the relationship is significant, and we have
+evidence that the number of landfalling hurricanes is increasing over time. We reject the null
+hypothesis that there is no change.

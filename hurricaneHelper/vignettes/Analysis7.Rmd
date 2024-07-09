@@ -1,0 +1,59 @@
+---
+title: "Analysis7"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Analysis7}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Find a claim made in the media made about tropical cyclones and climate change, and check whether the claim is supported or not by your data. You should pick a claim for which your data has relevant information. Cite the media source.
+
+"In the North Atlantic, Studholme et al suggest that we will see expansion of the tropics and a northward shift in tropical cyclones" (Waterman, 2022).
+
+For example, Subtropical Storm Alpha was "the first tropical cyclone to ever make landfall in Portugal and the eastern-most cyclone formation event ever recorded in the North Atlantic" (2022).
+
+*Reference*
+Waterman, S. (2022, February 5). Are Atlantic Hurricanes Moving North? Climate Adaptation Center. https://www.theclimateadaptationcenter.org/2022/02/05/are-atlantic-hurricanes-moving-north/
+
+ChatGPT says: "While there is some evidence to suggest a trend toward northward movement in the North Atlantic, it's also possible that other factors could be influencing the behavior of these storms as well."
+
+```{r setup}
+library(hurricaneHelper)
+data(hurdat)
+
+hurdat$year <- as.numeric(substr(hurdat$date, 1, 4))
+
+# Subset the dataset to include only North Atlantic tropical cyclones
+north_atlantic <- subset(hurdat, hurdat$longitude >= -100 &
+                             hurdat$longitude <= -20 &
+                             hurdat$latitude >= 0 &
+                             hurdat$latitude <= 60)
+
+# Calculate the average latitude of maximum intensity for each year
+lat_by_year <- aggregate(north_atlantic$latitude, list(north_atlantic$year), max)
+
+# Rename the columns in the aggregate output
+names(lat_by_year) <- c("Year", "Avg_Latitude")
+
+# Fit a linear regression model to the average latitude of maximum intensity
+# and year, where year is measured in years since 1980
+model <- lm(Avg_Latitude ~ Year, data = lat_by_year)
+
+# View the summary of the model
+summary(model)
+
+# The estimate found by the model is 0.042412. This means that, on average, the
+# latitude of maximum intensity has shifted northward by an average of 0.042412 
+# degrees per year since 1851. The p-value is 3.695e-06. Thus, if we use a 
+# significance level of 0.05, this means that the relationship if significantly
+# significant, providing evidence that the maximum intensity of hurricanes is 
+# shifting northward.
+```
